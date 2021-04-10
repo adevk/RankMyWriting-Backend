@@ -54,10 +54,10 @@ const main = async () => {
   // Parse json requests.
   app.use(express.json());
 
-  if (app.get('env') === 'production') {
-    app.set('trust proxy', 1) // trust first proxy
-    sessionOptions.cookie.secure = true // serve secure cookies
-  }
+  // if (app.get('env') === 'production') {
+  //   app.set('trust proxy', 1) // trust first proxy
+  //   sessionOptions.cookie.secure = true // serve secure cookies
+  // }
 
 
   // Register routes.

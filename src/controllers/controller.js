@@ -19,8 +19,9 @@ export class Controller {
    * @param {object} res - Express response object.
    */
   async index (req, res) {
+    // console.log('Log: controller/index get')
     const data = await Text.find({})
-    res.status(200).send(data)
+    res.status(200).send('Got index page at "/"')
   }
   /**
    * Create a text in db.
@@ -29,12 +30,12 @@ export class Controller {
    * @param {object} res - Express response object.
    */
   async create (req, res, next) {
+    // console.log('Log: controller/create post')
     try {
       const textData = req.body
       const text = new Text({
         content: textData.content
       })
-
       await text.save()
 
       res.status(201).send(textData)
