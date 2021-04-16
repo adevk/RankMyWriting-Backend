@@ -7,7 +7,7 @@
 
 import express from 'express'
 import createError from 'http-errors'
-import {Controller} from "../controllers/controller.js";
+import { Controller } from '../controllers/controller.js'
 
 export const router = express.Router()
 

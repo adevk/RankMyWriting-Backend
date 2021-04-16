@@ -6,8 +6,7 @@
  */
 import createError from 'http-errors'
 import Text from '../models/text.js'
-
-
+import { User } from '../models/user.js'
 /**
  * Encapsulates a controller.
  */
@@ -19,30 +18,35 @@ export class Controller {
    * @param {object} res - Express response object.
    */
   async index (req, res) {
-    // console.log('Log: controller/index get')
     const data = await Text.find({})
     res.status(200).send('Got index page at "/"')
   }
+
   /**
-   * Create a text in db.
+   * Creates a user account in MongoDB.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
    */
   async create (req, res, next) {
-    // console.log('Log: controller/create post')
-    try {
-      const textData = req.body
-      const text = new Text({
-        content: textData.content
-      })
-      await text.save()
-
-      res.status(201).send(textData)
-    } catch (err) {
-      // Create an error and pass it to error-handling middleware.
-      next(createError(err.status))
+    // Confirm that username is not taken.
+    if (!await User.findOne({ username: req.body.username })) {
+      try {
+        // Create a user model.
+        const user = new User({
+          username: req.body.username,
+          password: req.body.password
+        })
+        // Save user to the database.
+        await user.save()
+        res.status(201).send({ message: 'Account created successfully.' })
+      } catch (error) {
+        next(createError(500))
+      }
+    } else {
+      // 400 Bad request (user already exists).
+      next(createError(400))
     }
-
   }
 }

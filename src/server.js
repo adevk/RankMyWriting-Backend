@@ -7,11 +7,11 @@
 
 import express from 'express'
 import logger from 'morgan'
-// import { dirname, join } from 'path'
-// import { fileURLToPath } from 'url'
 import { router } from './routes/router.js'
 import { connectDB } from './config/mongoose.js'
 import helmet from 'helmet'
+import cors from 'cors'
+import session from 'express-session'
 
 /**
  * The main function of the application.
@@ -26,9 +26,6 @@ const main = async () => {
   }
 
   const app = express()
-  // const directoryFullName = dirname(fileURLToPath(import.meta.url))
-
-  // const baseURL = process.env.BASE_URL || '/'
 
   app.use(helmet({
     contentSecurityPolicy: {
@@ -47,18 +44,37 @@ const main = async () => {
 
   // app.set('views', join(directoryFullName, 'views'))
 
+  // Parse json requests.
+  app.use(express.json())
+
   // Parse requests of the content type application/x-www-form-urlencoded.
   // Populates the request object with a body object (req.body).
-  app.use(express.urlencoded({ extended: false }))
+  app.use(express.urlencoded({ extended: true }))
 
-  // Parse json requests.
-  app.use(express.json());
+  // TODO: Set session store for production environment.
 
-  // if (app.get('env') === 'production') {
-  //   app.set('trust proxy', 1) // trust first proxy
-  //   sessionOptions.cookie.secure = true // serve secure cookies
-  // }
+  // Setup and use session middleware (https://github.com/expressjs/session)
+  const sessionOptions = {
+    name: process.env.SESSION_NAME, // Don't use default session cookie name.
+    secret: process.env.SESSION_SECRET, // Change it!!! The secret is used to hash the session with HMAC.
+    resave: false, // Resave even if a request is not changing the session.
+    saveUninitialized: false, // Don't save a created but not modified session.
+    cookie: {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+      sameSite: 'lax'
+    }
+  }
 
+  app.use(session(sessionOptions))
+
+  // TODO: Set specific cors allowed origin for production environment.
+  app.use(cors())
+
+  if (app.get('env') === 'production') {
+    app.set('trust proxy', 1) // trust first proxy
+    sessionOptions.cookie.secure = true // serve secure cookies
+  }
 
   // Register routes.
   app.use('/', router)
@@ -67,14 +83,19 @@ const main = async () => {
   app.use(function (err, req, res, next) {
     // 404 Not Found.
     if (err.status === 404) {
-      return res.status(404)
+      return res.status(404).json({ message: '404 Not Found.' })
     }
 
     // 403 Forbidden.
     if (err.status === 403) {
-      return res.status(404)
+      // Return a 404, hiding the fact that the resource exists.
+      return res.status(404).send({ message: '404 Not Found.' })
     }
 
+    // 400 Bad request (ex: unallowed registration input)
+    if (err.status === 400) {
+      return res.status(400).send({ message: '400 Bad Request.' })
+    }
 
     // 500 Internal Server Error (in production, all other errors send this response).
     if (req.app.get('env') !== 'development') {
@@ -82,7 +103,6 @@ const main = async () => {
     } else {
       return res.status(500).send(err.stack)
     }
-
   })
 
   // Starts the HTTP server listening for connections.
