@@ -27,17 +27,17 @@ const main = async () => {
 
   const app = express()
 
-  app.use(helmet({
-    contentSecurityPolicy: {
-      directives: {
-        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        'default-src': ["'self'"],
-        'script-src': ["'self'"],
-        'font-src': ["'self'"],
-        'style-src': ["'self'"]
-      }
-    }
-  }))
+  // app.use(helmet({
+  //   contentSecurityPolicy: {
+  //     directives: {
+  //       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+  //       'default-src': ["'self'"],
+  //       'script-src': ["'self'"],
+  //       'font-src': ["'self'"],
+  //       'style-src': ["'self'"]
+  //     }
+  //   }
+  // }))
 
   // Set up a morgan logger using the dev format for log entries.
   app.use(logger('dev'))
@@ -58,9 +58,10 @@ const main = async () => {
     name: process.env.SESSION_NAME, // Don't use default session cookie name.
     secret: process.env.SESSION_SECRET, // Change it!!! The secret is used to hash the session with HMAC.
     resave: false, // Resave even if a request is not changing the session.
-    saveUninitialized: false, // Don't save a created but not modified session.
+    saveUninitialized: true, // Don't save a created but not modified session.
     cookie: {
-      httpOnly: true,
+      secure: false,
+      httpOnly: false,
       maxAge: 1000 * 60 * 60 * 24, // 1 day
       sameSite: 'lax'
     }
@@ -83,18 +84,23 @@ const main = async () => {
   app.use(function (err, req, res, next) {
     // 404 Not Found.
     if (err.status === 404) {
-      return res.status(404).json({ message: '404 Not Found.' })
+      return res.status(404).send({ message: (err.message || '404 Not Found.') })
     }
 
     // 403 Forbidden.
     if (err.status === 403) {
       // Return a 404, hiding the fact that the resource exists.
-      return res.status(404).send({ message: '404 Not Found.' })
+      return res.status(404).send({ message: (err.message || '404 Not Found.') })
     }
 
     // 400 Bad request (ex: unallowed registration input)
     if (err.status === 400) {
-      return res.status(400).send({ message: '400 Bad Request.' })
+      return res.status(400).send({ message: (err.message || '400 Bad Request.') })
+    }
+
+    // 401 Unauthorized (ex: not authenticated)
+    if (err.status === 401) {
+      return res.status(401).send({ message: (err.message || '401 Unauthorized.') })
     }
 
     // 500 Internal Server Error (in production, all other errors send this response).
