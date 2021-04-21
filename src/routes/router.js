@@ -15,6 +15,8 @@ const controller = new Controller()
 
 router.get('/', controller.index)
 router.post('/create', controller.create)
+router.post('/login', controller.login)
+
 
 // Catch 404.
 router.use('*', (req, res, next) => next(createError(404)))

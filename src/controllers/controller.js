@@ -49,4 +49,23 @@ export class Controller {
       next(createError(400))
     }
   }
+
+  /**
+   * Logs in a user.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  async login (req, res, next) {
+    try {
+      // Authenticate a user.
+      const user = await User.authenticate(req.body.username, req.body.password)
+      const token = user.generateSignedJwtToken()
+      console.log(token)
+      res.status(200).json({ success: true, token })
+    } catch (error) {
+      next(createError(401, error.message))
+    }
+  }
 }
