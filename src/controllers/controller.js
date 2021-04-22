@@ -6,7 +6,7 @@
  */
 import createError from 'http-errors'
 import Text from '../models/text.js'
-import { User } from '../models/user.js'
+import User from '../models/user.js'
 /**
  * Encapsulates a controller.
  */
@@ -62,10 +62,20 @@ export class Controller {
       // Authenticate a user.
       const user = await User.authenticate(req.body.username, req.body.password)
       const token = user.generateSignedJwtToken()
-      console.log(token)
       res.status(200).json({ success: true, token })
     } catch (error) {
       next(createError(401, error.message))
     }
+  }
+
+  /**
+   * Shows user dashboard.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  dashboard (req, res, next) {
+    res.status(200).json({ success: true, userData: req.user })
   }
 }

@@ -64,4 +64,5 @@ schema.pre('save', async function () {
 })
 
 // Create a model using the schema.
-export const User = mongoose.model('User', schema)
+const User = mongoose.model('User', schema)
+export default User
