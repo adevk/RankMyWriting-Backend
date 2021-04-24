@@ -10,22 +10,22 @@ import logger from 'morgan'
 import { router } from './routes/router.js'
 import { connectDB } from './config/mongoose.js'
 import cors from 'cors'
-import session from 'express-session'
+
+export const app = express()
 
 /**
  * The main function of the application.
  */
 const main = async () => {
-  try {
-    await connectDB()
-  } catch (err) {
-    console.error(err.message)
-    process.exitCode = 1
-    return
+  if (!process.env.NODE_ENV === 'test') {
+    try {
+      await connectDB()
+    } catch (err) {
+      console.error(err.message)
+      process.exitCode = 1
+      return
+    }
   }
-
-  const app = express()
-
   // app.use(helmet({
   //   contentSecurityPolicy: {
   //     directives: {
@@ -84,12 +84,6 @@ const main = async () => {
     } else {
       return res.status(500).send(err.stack)
     }
-  })
-
-  // Starts the HTTP server listening for connections.
-  app.listen(process.env.PORT, () => {
-    console.log(`Server running at http://localhost:${process.env.PORT}`)
-    console.log('Press Ctrl-C to terminate...')
   })
 }
 
