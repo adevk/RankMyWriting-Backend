@@ -15,7 +15,7 @@ export const router = express.Router()
 const controller = new Controller()
 
 router.get('/', controller.index)
-router.post('/create', controller.create)
+router.post('/register', controller.register)
 router.post('/login', controller.login)
 router.get('/dashboard', authorize, controller.dashboard)
 

@@ -17,6 +17,7 @@ export const app = express()
  * The main function of the application.
  */
 const main = async () => {
+  // Connect to db if not executed by test runner.
   if (!process.env.NODE_ENV === 'test') {
     try {
       await connectDB()

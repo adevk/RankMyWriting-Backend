@@ -29,7 +29,7 @@ export class Controller {
    * @param {object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  async create (req, res, next) {
+  async register (req, res, next) {
     // Confirm that username is not taken.
     if (!await User.findOne({ username: req.body.username })) {
       try {
