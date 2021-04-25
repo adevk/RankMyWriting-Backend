@@ -1,4 +1,4 @@
-import { test, expect, beforeAll, afterAll } from '@jest/globals'
+import { test, expect, beforeEach, afterEach } from '@jest/globals'
 import supertest from 'supertest'
 import mongoose from 'mongoose'
 import { app } from '../src/server.js'
@@ -8,12 +8,12 @@ const request = supertest(app)
 
 const databaseName = 'test'
 
-beforeAll(async () => {
+beforeEach(async () => {
   const mongoURI = `mongodb://localhost:27017/${databaseName}`
   await mongoose.connect(mongoURI, { useNewUrlParser: true })
 })
 
-afterAll(async () => {
+afterEach(async () => {
   // Removes all created users.
   await User.deleteMany()
   // Closes the Mongoose connection.
@@ -42,4 +42,40 @@ test('Register new user in database', async () => {
 
   const userCount = await User.count()
   expect(userCount).toBe(1)
+})
+
+test('Does not register user with short password', async () => {
+  const username = 'Vdra#'
+  const password = '1111111'
+
+  // Send request to create user.
+  await request.post('/register')
+    .send({ username: username, password: password })
+    .expect('Content-Type', /json/)
+    .expect(400, { message: 'User validation failed: password: The password must consist of at least 8 characters.' })
+
+  expect(await User.count()).toBe(0)
+})
+
+test('Does not register user with invalid data', async () => {
+  const username = 'Benjamin'
+  const password = '11111114233'
+
+  // Send request to create user.
+  await request.post('/register')
+    .send({ username: username })
+    .expect('Content-Type', /json/)
+    .expect(400)
+
+  await request.post('/register')
+    .send({ password: password })
+    .expect('Content-Type', /json/)
+    .expect(400)
+
+  await request.post('/register')
+    .send({ username: '', password: '' })
+    .expect('Content-Type', /json/)
+    .expect(400)
+
+  expect(await User.count()).toBe(0)
 })

@@ -42,7 +42,11 @@ export class Controller {
         await user.save()
         res.status(201).send({ message: 'Account created successfully.' })
       } catch (error) {
-        next(createError(500))
+        if (error.name === 'ValidationError') {
+          next(createError(400, error.message))
+        } else {
+          next(createError(500))
+        }
       }
     } else {
       // 400 Bad request (user already exists).
