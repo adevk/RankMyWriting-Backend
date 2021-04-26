@@ -3,6 +3,7 @@ import supertest from 'supertest'
 import mongoose from 'mongoose'
 import { app } from '../src/server.js'
 import User from '../src/models/user.js'
+import jwt from 'jsonwebtoken'
 
 const request = supertest(app)
 
@@ -79,5 +80,84 @@ describe('Registration endpoint', () => {
       .expect(400)
 
     expect(await User.count()).toBe(0)
+  })
+})
+
+describe('Login endpoint', () => {
+  beforeEach(async () => {
+    const mongoURI = `mongodb://localhost:27017/${databaseName}`
+    await mongoose.connect(mongoURI, { useNewUrlParser: true })
+  })
+
+  afterEach(async () => {
+    // Removes all created users.
+    await User.deleteMany()
+    // Closes the Mongoose connection.
+    await mongoose.connection.close()
+  })
+
+  it('logs in user with valid data', async () => {
+    // For JWT generation.
+    process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
+    process.env.JWT_EXPIRE = '86400'
+
+    const username = 'Manny'
+    const password = '798#5p987oeu'
+
+    // Initiate db with a user to login with.
+    const user = new User({
+      username: username,
+      password: password
+    })
+    await user.save()
+
+    const response = await request.post('/login')
+      .send({ username: username, password: password })
+      .expect('Content-Type', /json/)
+      .expect(200)
+
+    const token = response.body.token
+    expect(jwt.verify(token, process.env.JWT_SECRET)).toBeTruthy()
+  })
+
+  it('does not log in user with invalid data', async () => {
+    // For JWT generation.
+    process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
+    process.env.JWT_EXPIRE = '86400'
+
+    const username = 'Manny'
+    const password = '798#5p987oeu'
+
+    // Initiate db with a user to login with.
+    const user = new User({
+      username: username,
+      password: password
+    })
+    await user.save()
+
+    // Send request to create user.
+    let response
+    response = await request.post('/login')
+      .send({ username: username })
+      .expect('Content-Type', /json/)
+      .expect(401)
+    expect(response.body.token).toBeFalsy()
+
+    response = await request.post('/login')
+      .send({ password: password })
+      .expect('Content-Type', /json/)
+      .expect(401)
+    expect(response.body.token).toBeFalsy()
+
+    response = await request.post('/login')
+      .send({ username: '', password: '' })
+      .expect('Content-Type', /json/)
+      .expect(401)
+    expect(response.body.token).toBeFalsy()
+
+    response = await request.post('/login')
+      .expect('Content-Type', /json/)
+      .expect(401)
+    expect(response.body.token).toBeFalsy()
   })
 })
