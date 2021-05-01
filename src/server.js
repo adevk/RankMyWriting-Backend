@@ -18,7 +18,7 @@ export const app = express()
  */
 const main = async () => {
   // Connect to db if not executed by test runner.
-  if (!process.env.NODE_ENV === 'test') {
+  if (process.env.NODE_ENV !== 'test') {
     try {
       await connectDB()
     } catch (err) {
