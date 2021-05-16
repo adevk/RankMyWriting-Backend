@@ -5,13 +5,19 @@
  * @version 1.0.0
  */
 
-import createError from 'http-errors'
-import Writing from '../models/writing.js'
+import Repository from '../models/repository'
 
 /**
  * Encapsulates a controller.
  */
 export default class WritingsController {
+  /**
+   *  Initializes controller.
+   */
+  constructor () {
+    this.repository = new Repository()
+  }
+
   /**
    * Creates a writing in database.
    *
@@ -19,28 +25,14 @@ export default class WritingsController {
    * @param {object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
-  async create (req, res, next) {
-    // Confirm that username is not taken.
+  async createWriting (req, res, next) {
+    // Writing data from client + userId from authorized user.
+    const writingData = { ...req.body, userId: req.authorizedUser._id }
     try {
-      console.log('From writing controller')
-      // Create a writing model.
-      const writing = new Writing({
-        userId: req.user._id,
-        title: req.body.title,
-        text: req.body.text,
-        active: req.body.active
-
-      })
-      // Save user to the database.
-      await writing.save()
-
+      await this.repository.createWriting(writingData)
       res.status(201).send({ message: 'Writing created successfully.' })
     } catch (error) {
-      if (error.name === 'ValidationError') {
-        next(createError(400, error.message))
-      } else {
-        next(createError(500))
-      }
+      next(error)
     }
   }
 }

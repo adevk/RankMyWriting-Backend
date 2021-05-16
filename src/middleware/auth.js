@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken'
-import User from '../models/user.js'
-import createError from 'http-errors'
+import Repository from '../models/repository'
 
 /**
  * Middleware for protecting routes by authorization.
@@ -10,20 +9,24 @@ import createError from 'http-errors'
  * @param {Function} next - Express next middleware function.
  */
 const authorize = async (req, res, next) => {
-  const token = req.headers.authorization.startsWith('Bearer') && req.headers.authorization.split(' ')[1]
+  const repository = new Repository()
+
+  const JWT_TOKEN_INDEX = 1
+  const authorizationHeaderParts = req.headers.authorization.split(' ')
+  const jwtSignInToken = authorizationHeaderParts[0] === 'Bearer' && authorizationHeaderParts[JWT_TOKEN_INDEX]
 
   try {
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET)
-    const user = await User.findById(decodedToken.id)
+    // Verify and decode the JWT-token from the client.
+    const decodedJwtToken = jwt.verify(jwtSignInToken, process.env.JWT_SECRET)
 
-    if (!user) {
-      next(createError(404, 'There is no user with this id.'))
-    } else {
-      req.user = user
-      next()
-    }
+    const userId = decodedJwtToken.id
+    const dbUser = await repository.retrieveUserById(userId)
+
+    // Send authorizedUser to subsequent routes.
+    req.authorizedUser = dbUser
+    next()
   } catch (error) {
-    next(createError(404, 'You are not autorized to access this route.'))
+    next(error)
   }
 }
 
