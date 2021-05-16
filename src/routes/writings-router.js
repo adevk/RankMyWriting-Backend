@@ -6,6 +6,6 @@ const writingsRouter = express.Router()
 
 const writingsController = new WritingsController()
 
-writingsRouter.post('/create', authorize, (req, res, next) => writingsController.create(req, res, next))
+writingsRouter.post('/create', authorize, (req, res, next) => writingsController.createWriting(req, res, next))
 
 export default writingsRouter

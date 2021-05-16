@@ -15,7 +15,8 @@ const schema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    trim: true
+    trim: true,
+    maxlength: [100, 'The username is not allowed to consist of more than 100 characters.']
   },
   password: {
     type: String,
@@ -35,14 +36,14 @@ const schema = new mongoose.Schema({
  * @returns {object} user from db.
  */
 schema.statics.authenticate = async function (username, password) {
-  const user = await User.findOne({ username })
+  const dbUser = await User.findOne({ username })
 
   // If user was not found or password was incorrect, throw an error.
-  if (!user || !(await bcrypt.compare(password, user.password))) {
+  if (!dbUser || !(await bcrypt.compare(password, dbUser.password))) {
     throw new Error('Invalid login credentials.')
   }
   // If the login attempt was successful, return the user.
-  return user
+  return dbUser
 }
 
 /**

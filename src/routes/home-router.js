@@ -6,6 +6,6 @@ const homeRouter = express.Router()
 
 const homeController = new HomeController()
 
-homeRouter.get('/dashboard', authorize, (req, res, next) => homeController.dashboard(req, res, next))
+homeRouter.get('/dashboard', authorize, (req, res, next) => homeController.getDashboardData(req, res, next))
 
 export default homeRouter

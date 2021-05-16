@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from '@jest/globals'
 import supertest from 'supertest'
 import mongoose from 'mongoose'
 import { app } from '../src/server.js'
+import Repository from '../src/models/repository'
 import User from '../src/models/user.js'
 import Writing from '../src/models/writing.js'
 import jwt from 'jsonwebtoken'
@@ -110,11 +111,8 @@ describe('Login endpoint', () => {
     const password = '798#5p987oeu'
 
     // Initiate db with a user to login with.
-    const user = new User({
-      username: username,
-      password: password
-    })
-    await user.save()
+    const repository = new Repository()
+    const user = await repository.createUser({ username, password })
 
     const response = await request.post(loginPath)
       .send({ username: username, password: password })
