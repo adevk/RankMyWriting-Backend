@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken'
 import Repository from '../models/repository'
+import createError from 'http-errors'
 
 /**
  * Middleware for protecting routes by authorization.
@@ -26,6 +27,9 @@ const authorize = async (req, res, next) => {
     req.authorizedUser = dbUser
     next()
   } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      return next(createError(401, 'User is not authenticated.'))
+    }
     next(error)
   }
 }
