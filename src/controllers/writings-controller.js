@@ -35,4 +35,25 @@ export default class WritingsController {
       next(error)
     }
   }
+
+  /**
+   * Creates all writings from repository.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  async retriveWritings (req, res, next) {
+    const userId = req.authorizedUser._id.toString()
+    try {
+      const retrievedWritings = await this.repository.retrieveWritings(userId)
+      if (retrievedWritings.length === 0) {
+        res.status(200).send({ data: retrievedWritings, message: 'There are no writings for this user.' })
+      } else {
+        res.status(200).send({ data: retrievedWritings, message: 'Writings retrieved successfully.' })
+      }
+    } catch (error) {
+      next(error)
+    }
+  }
 }

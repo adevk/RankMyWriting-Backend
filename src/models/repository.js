@@ -101,4 +101,20 @@ export default class Repository {
       }
     }
   }
+
+  /**
+   * Retrieves all writings for a particular user.
+   *
+   * @param {string} userId - The user id of the user whose writings shall be retrieved.
+   *
+   * @returns {Array} The array containing all the user's writings.
+   */
+  async retrieveWritings (userId) {
+    try {
+      const writings = await Writing.find({ userId: userId })
+      return writings
+    } catch (error) {
+      throw createError(500)
+    }
+  }
 }

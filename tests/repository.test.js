@@ -1,15 +1,12 @@
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals'
 import dbHandler from './helper-modules/in-memory-mongodb-handler.cjs'
 import Repository from '../src/models/repository'
-import User from '../src/models/user'
-import Writing from '../src/models/writing'
-import jwt from 'jsonwebtoken'
 import {
   assertThatUserDoesNotExistsInDatabase,
   assertThatUserExistsInDatabase, assertThatValidJWTWasReturned, assertThrowsExceptionWhenTryingToSignIn,
   createUser, decodeSignInToken, signInUser
 } from './helper-modules/user-helper'
-import { assertThatWritingExistsInDatabase } from './helper-modules/writing-helper'
+import { assertThatWritingExistsInDatabase, createWritings } from './helper-modules/writing-helper'
 
 const repository = new Repository()
 process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
@@ -30,12 +27,16 @@ describe('Repository', () => {
 
   describe('createUser method', () => {
     it('creates and stores a user when input is valid', async () => {
+      // Arrange
       const userCredentials = {
         username: 'Bradley',
         password: 'eoulxn2u'
       }
+
+      // Act
       await createUser(userCredentials)
 
+      // Assert
       await assertThatUserExistsInDatabase(userCredentials)
     })
 
@@ -187,6 +188,7 @@ describe('Repository', () => {
 
       // Act
       await repository.createWriting(writingData)
+
       // Assert
       assertThatWritingExistsInDatabase(writingData)
     })
@@ -261,6 +263,42 @@ describe('Repository', () => {
 
       // Act + Assert
       await expect(repository.createWriting(writingData)).rejects.toThrow()
+    })
+  })
+  describe('retrieveWritings method', () => {
+    it('retrieves all writings', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Magnus Uggla', password: 'oeu987dhou9843' }))._id
+      const createdWritings = await createWritings(3, userId)
+
+      // Act
+      const retrievedWritings = await repository.retrieveWritings(userId)
+
+      // Assert
+      expect(JSON.stringify(createdWritings)).toEqual(JSON.stringify(retrievedWritings))
+    })
+
+    it('returns an empty array if user id is invalid', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Magnus Uggla', password: 'oeu987dhou9843' }))._id
+      await createWritings(3, userId)
+
+      // Act
+      const retrievedWritings = await repository.retrieveWritings(userId + '#')
+
+      // Assert
+      expect(retrievedWritings).toEqual([])
+    })
+
+    it('returns an empty array if user has no writings', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Magnus Uggla', password: 'oeu987dhou9843' }))._id
+
+      // Act
+      const retrievedWritings = await repository.retrieveWritings(userId + '#')
+
+      // Assert
+      expect(retrievedWritings).toEqual([])
     })
   })
 })

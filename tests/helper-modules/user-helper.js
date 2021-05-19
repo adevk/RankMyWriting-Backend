@@ -13,8 +13,6 @@ import Repository from '../../src/models/repository'
 import jwt from 'jsonwebtoken'
 
 const repository = new Repository()
-// process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
-// process.env.JWT_EXPIRE = '86400'
 
 /**
  * A function for creating a user in repository during testing.
