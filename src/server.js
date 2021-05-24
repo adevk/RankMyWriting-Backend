@@ -10,6 +10,7 @@ import logger from 'morgan'
 import { router } from './routes/router.js'
 import { connectDB } from './config/mongoose.js'
 import cors from 'cors'
+import helmet from 'helmet'
 
 export const app = express()
 
@@ -27,17 +28,18 @@ const main = async () => {
       return
     }
   }
-  // app.use(helmet({
-  //   contentSecurityPolicy: {
-  //     directives: {
-  //       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-  //       'default-src': ["'self'"],
-  //       'script-src': ["'self'"],
-  //       'font-src': ["'self'"],
-  //       'style-src': ["'self'"]
-  //     }
-  //   }
-  // }))
+
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        'default-src': ["'self'"],
+        'script-src': ["'self'"],
+        'font-src': ["'self'"],
+        'style-src': ["'self'"]
+      }
+    }
+  }))
 
   // Set up a morgan logger using the dev format for log entries.
   app.use(logger('dev'))

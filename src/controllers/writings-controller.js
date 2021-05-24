@@ -5,7 +5,7 @@
  * @version 1.0.0
  */
 
-import Repository from '../models/repository'
+import Repository from '../models/repository.js'
 
 /**
  * Encapsulates a controller.
