@@ -7,6 +7,8 @@
 
 import mongoose from 'mongoose'
 
+import { voteSchema } from './vote.js'
+
 // Create a schema for a writing.
 const schema = new mongoose.Schema({
   userId: {
@@ -25,7 +27,8 @@ const schema = new mongoose.Schema({
   active: {
     type: Boolean,
     required: true
-  }
+  },
+  votes: [voteSchema]
 }, {
   timestamps: true,
   versionKey: false

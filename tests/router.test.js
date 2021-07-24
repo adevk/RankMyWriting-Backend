@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken'
 import { createUser, signInUser } from './helper-modules/user-helper'
 import { assertThatWritingExistsInDatabase, createWritings } from './helper-modules/writing-helper'
 import dbHandler from './helper-modules/in-memory-mongodb-handler.cjs'
+import repository from '../src/models/repository'
 
 const request = supertest(app)
 
@@ -271,7 +272,7 @@ describe('Router', () => {
 
       // Act + Assert
       await request.get('/writings/retrieve')
-        .send({ userId: userId })
+        .send()
         .set('Authorization', `Bearer ${jwtSignInToken}`)
         .expect('Content-Type', /json/)
         .expect(200)
@@ -294,7 +295,7 @@ describe('Router', () => {
 
       // Act + Assert
       await request.get('/writings/retrieve')
-        .send({ userId: userId })
+        .send()
         .set('Authorization', `Bearer ${invalidToken}`)
         .expect('Content-Type', /json/)
         .expect(401)
@@ -312,13 +313,74 @@ describe('Router', () => {
 
       // Act + Assert
       await request.get('/writings/retrieve')
-        .send({ userId: userId })
+        .send()
         .set('Authorization', `Bearer ${jwtSignInToken}`)
         .expect('Content-Type', /json/)
         .expect(200)
         .then(response => {
           const retrievedWritings = response.body.data
           expect(retrievedWritings).toEqual([])
+        })
+    })
+  })
+
+  describe('Endpoint for adding a vote to a writing', () => {
+    it('adds a vote to a writing in database', async () => {
+      const userCredentials = {
+        username: 'Ray Liotta',
+        password: '*()BD)CGoeu'
+      }
+
+      // Arrange
+      const userId = (await createUser(userCredentials))._id
+      const jwtSignInToken = await signInUser(userCredentials)
+      const createdWritings = await createWritings(1, userId)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject = {
+        comprehensible: 3,
+        engaging: 4,
+        convincing: 0,
+        conversational: true,
+        positive: false,
+        personal: true
+      }
+
+      // Act + Assert
+      await request.post(`/writings/${writingId}/vote`)
+        .send(voteObject)
+        .set('Authorization', `Bearer ${jwtSignInToken}`)
+        .expect('Content-Type', /json/)
+        .expect(201, { message: 'Vote successfully added to writing.' })
+    })
+  })
+
+  describe('Endpoint for fetching a random writing for voting', () => {
+    it('fetches a random writing from another user', async () => {
+      // Arrange
+      const user1Credentials = { username: 'user1', password: '897thddeout' }
+      const user1 = (await createUser(user1Credentials))
+      const user1Id = user1._id.toString()
+      const jwtSignInToken = await signInUser(user1Credentials)
+
+      const user2 = (await createUser({ username: 'user2', password: '(*)&U98eo789)' }))
+      const user3 = (await createUser({ username: 'user3', password: 'SHHTHSeou' }))
+      const user4 = (await createUser({ username: 'user4', password: '*&^(UEX*&' }))
+
+      await createWritings(8, user1Id)
+      await createWritings(2, user2._id)
+      await createWritings(3, user3._id)
+      await createWritings(4, user4._id)
+
+      // Act + Assert
+      await request.get('/writings/random')
+        .send()
+        .set('Authorization', `Bearer ${jwtSignInToken}`)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .then(response => {
+          const randomWriting = response.body.data
+          expect(randomWriting.userId).not.toEqual(user1Id)
         })
     })
   })
