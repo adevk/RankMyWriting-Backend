@@ -7,6 +7,7 @@
 
 import User from './user.js'
 import Writing from './writing.js'
+import Vote from './vote.js'
 import createError from 'http-errors'
 
 /**
@@ -102,6 +103,8 @@ export default class Repository {
     }
   }
 
+  // TODO Rename id property for writing returned to client
+
   /**
    * Retrieves all writings for a particular user.
    *
@@ -117,4 +120,58 @@ export default class Repository {
       throw createError(500)
     }
   }
+
+  /**
+   * Adds a vote to a specific writing.
+   *
+   * @param {object} voteObj - The object containing the vote data and writing id.
+   *
+   * @returns {Array} The array containing all the user's writings.
+   */
+  async addVoteToWriting (voteObj) {
+    try {
+      const vote = new Vote(voteObj)
+      return (await vote.save()).toObject()
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        throw createError(400, error.message)
+      } else {
+        throw createError(500)
+      }
+    }
+  }
+
+  /**
+   * Retrieves a random writing for voting on.
+   *
+   * @param {string} userId - The user id of the user whose writings shall be retrieved.
+   *
+   * @returns {object} The retrieved writing.
+   */
+  async retrieveRandomWritingForVoting (userId) {
+    try {
+      // Gets all writings of other users.
+      const filteredWritings = await Writing.find({ userId: { $ne: userId } })
+      const randomWriting = filteredWritings[Math.floor(Math.random() * filteredWritings.length)]
+      return randomWriting
+    } catch (error) {
+      throw createError(500)
+    }
+  }
 }
+
+// /**
+//  * Retrieves a specific writing by id.
+//  *
+//  * @param {string} writingId - The id of the writing to be retrieved.
+//  *
+//  * @returns {object} The retrieved writing.
+//  */
+// async retrieveWritingById (writingId) {
+//   try {
+//     const writing = await Writing.findById(writingId)
+//     return writing
+//   } catch (error) {
+//     throw createError(500)
+//   }
+// }

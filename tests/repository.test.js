@@ -265,6 +265,7 @@ describe('Repository', () => {
       await expect(repository.createWriting(writingData)).rejects.toThrow()
     })
   })
+
   describe('retrieveWritings method', () => {
     it('retrieves all writings', async () => {
       // Arrange
@@ -299,6 +300,111 @@ describe('Repository', () => {
 
       // Assert
       expect(retrievedWritings).toEqual([])
+    })
+  })
+
+  describe('addVoteToWriting method', () => {
+    it('adds a vote to the specified writing when voteObject and writingId are valid', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))._id
+      const createdWritings = await createWritings(1, userId)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject = {
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 4,
+        conversational: true,
+        positive: false,
+        personal: true,
+        writingId: writingId
+      }
+
+      // Act
+      const addedVote = await repository.addVoteToWriting(voteObject)
+
+      // Assert
+      expect(addedVote.writingId).toEqual(writingId)
+    })
+
+    it('throws an exception when an attribute has a value above the limit', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))._id
+      const createdWritings = await createWritings(1, userId)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject = {
+        comprehensible: 3,
+        engaging: 4,
+        convincing: 6,
+        conversational: true,
+        positive: false,
+        personal: true,
+        writingId: writingId
+      }
+
+      // Act + Assert
+      await expect(repository.addVoteToWriting(voteObject)).rejects.toThrow()
+    })
+
+    it('throws an exception when an attribute has a value below the limit', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))._id
+      const createdWritings = await createWritings(1, userId)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject = {
+        comprehensible: -1,
+        engaging: 2,
+        convincing: 5,
+        conversational: true,
+        positive: false,
+        personal: true,
+        writingId: writingId
+      }
+
+      // Act + Assert
+      await expect(repository.addVoteToWriting(voteObject)).rejects.toThrow()
+    })
+
+    it('throws an exception when a tone is null', async () => {
+      // Arrange
+      const userId = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))._id
+      const createdWritings = await createWritings(1, userId)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject = {
+        comprehensible: 0,
+        engaging: 3,
+        convincing: 2,
+        conversational: true,
+        positive: null,
+        personal: true,
+        writingId: writingId
+      }
+
+      // Act + Assert
+      await expect(repository.addVoteToWriting(voteObject)).rejects.toThrow()
+    })
+  })
+
+  describe('retrieveRandomWritingForVoting method', () => {
+    it('gets a random writing that is not owned by the voting user', async () => {
+      // Arrange
+      const user1 = (await createUser({ username: 'user1', password: 'toeu87y6oeu' }))
+      const user2 = (await createUser({ username: 'user2', password: 'oeu987dh*&^(#' }))
+      const user3 = (await createUser({ username: 'user3', password: 'oeu987dh#@4' }))
+      await createWritings(5, user1._id)
+      await createWritings(1, user2._id)
+      await createWritings(1, user3._id)
+
+      const user1Id = user1._id.toString()
+
+      // Act
+      const randomWriting = await repository.retrieveRandomWritingForVoting(user1Id)
+
+      // Assert
+      expect(randomWriting.userId).not.toEqual(user1Id)
     })
   })
 })
