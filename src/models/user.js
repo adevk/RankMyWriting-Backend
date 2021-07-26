@@ -22,6 +22,11 @@ const schema = new mongoose.Schema({
     type: String,
     required: [true, 'A password is required.'],
     minlength: [8, 'The password must consist of at least 8 characters.']
+  },
+  points: {
+    type: Number,
+    default: 0,
+    min: 0
   }
 }, {
   timestamps: true,

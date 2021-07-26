@@ -28,7 +28,7 @@ export default class Repository {
         password: userData.password
       })
       // Save user to the database.
-      return (await user.save()).toObject()
+      return await user.save()
     } catch (error) {
       if (error.name === 'ValidationError') {
         throw createError(400, error)
@@ -66,7 +66,7 @@ export default class Repository {
   async retrieveUserById (userId) {
     try {
       const dbUser = await User.findById(userId)
-      return dbUser.toObject()
+      return dbUser
     } catch (error) {
       throw createError(404, 'There is no user with this id.')
     }
@@ -89,7 +89,7 @@ export default class Repository {
 
       })
       // Save user to the database.
-      return (await writing.save()).toObject()
+      return await writing.save()
     } catch (error) {
       if (error.name === 'ValidationError') {
         throw createError(400, error)
@@ -121,13 +121,19 @@ export default class Repository {
    * Adds a vote to a specific writing.
    *
    * @param {object} voteObj - The object containing the vote data and writing id.
+   * @param {object} votingUser - The user that's casting a vote.
    *
    * @returns {Array} The array containing all the user's writings.
    */
-  async addVoteToWriting (voteObj) {
+  async addVoteToWriting (voteObj, votingUser) {
     try {
+      // Save vote to database.
       const vote = new Vote(voteObj)
-      return (await vote.save()).toObject()
+      const addedVote = (await vote.save()).toObject()
+      // Retrieve associated user and increment his/her points.
+      votingUser.points += 1
+      await votingUser.save()
+      return addedVote
     } catch (error) {
       if (error.name === 'ValidationError') {
         throw createError(400, error)
@@ -154,20 +160,22 @@ export default class Repository {
       throw createError(500)
     }
   }
+
+  /**
+   * Retrieves a specific writing by id.
+   *
+   * @param {string} writingId - The id of the writing to be retrieved.
+   *
+   * @returns {object} The retrieved writing.
+   */
+  async retrieveWritingById (writingId) {
+    try {
+      const writing = await Writing.findById(writingId)
+      return writing
+    } catch (error) {
+      throw createError(500)
+    }
+  }
 }
 
-// /**
-//  * Retrieves a specific writing by id.
-//  *
-//  * @param {string} writingId - The id of the writing to be retrieved.
-//  *
-//  * @returns {object} The retrieved writing.
-//  */
-// async retrieveWritingById (writingId) {
-//   try {
-//     const writing = await Writing.findById(writingId)
-//     return writing
-//   } catch (error) {
-//     throw createError(500)
-//   }
-// }
+

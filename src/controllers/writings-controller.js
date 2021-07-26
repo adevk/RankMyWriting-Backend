@@ -48,10 +48,11 @@ export default class WritingsController {
   async voteOnWriting (req, res, next) {
     const voteData = req.body
     const writingId = req.params.id
+    const votingUser = req.authorizedUser
 
     try {
       const voteObj = { ...voteData, writingId }
-      await this.repository.addVoteToWriting(voteObj)
+      await this.repository.addVoteToWriting(voteObj, votingUser)
       res.status(201).send({ message: 'Vote successfully added to writing.' })
     } catch (error) {
       next(error)
@@ -66,14 +67,15 @@ export default class WritingsController {
    * @param {Function} next - Express next middleware function.
    */
   async retrieveWritings (req, res, next) {
-    const userId = req.authorizedUser._id.toString()
+    const user = req.authorizedUser
+    const userId = user._id.toString()
     try {
       const retrievedWritings = await this.repository.retrieveWritings(userId)
       if (retrievedWritings.length === 0) {
         // TODO change status code to more correct one
-        res.status(200).send({ data: retrievedWritings, message: 'There are no writings for this user.' })
+        res.status(200).send({ writings: retrievedWritings, points: user.points, message: 'There are no writings for this user.' })
       } else {
-        res.status(200).send({ data: retrievedWritings, message: 'Writings retrieved successfully.' })
+        res.status(200).send({ writings: retrievedWritings, points: user.points, message: 'Writings retrieved successfully.' })
       }
     } catch (error) {
       next(error)

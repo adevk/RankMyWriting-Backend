@@ -275,7 +275,7 @@ describe('Router', () => {
         .expect('Content-Type', /json/)
         .expect(200)
         .then(response => {
-          const retrievedWritings = response.body.data
+          const retrievedWritings = response.body.writings
           expect(JSON.stringify(createdWritings)).toEqual(JSON.stringify(retrievedWritings))
         })
     })
@@ -305,8 +305,7 @@ describe('Router', () => {
         username: 'Petter',
         password: '90theoud98>P@#'
       }
-      const user = await createUser(userCredentials)
-      const userId = user._id.toString()
+      await createUser(userCredentials)
       const jwtSignInToken = await signInUser(userCredentials)
 
       // Act + Assert
@@ -316,7 +315,7 @@ describe('Router', () => {
         .expect('Content-Type', /json/)
         .expect(200)
         .then(response => {
-          const retrievedWritings = response.body.data
+          const retrievedWritings = response.body.writings
           expect(retrievedWritings).toEqual([])
         })
     })
