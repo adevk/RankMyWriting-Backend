@@ -306,8 +306,9 @@ describe('Repository', () => {
   describe('addVoteToWriting method', () => {
     it('adds a vote to the specified writing when voteObject and writingId are valid', async () => {
       // Arrange
-      const userId = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))._id
-      const createdWritings = await createWritings(1, userId)
+      const votingUser = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))
+      const writingUser = (await createUser({ username: 'Jack the ripper', password: 'oeu*&%*%&^843$#' }))
+      const createdWritings = await createWritings(1, writingUser._id)
       const writingId = createdWritings[0]._id.toString()
 
       const voteObject = {
@@ -321,10 +322,36 @@ describe('Repository', () => {
       }
 
       // Act
-      const addedVote = await repository.addVoteToWriting(voteObject)
+      const addedVote = await repository.addVoteToWriting(voteObject, votingUser)
 
       // Assert
       expect(addedVote.writingId).toEqual(writingId)
+    })
+
+    it("increments a user's points when he receives a vote on his writing", async () => {
+      // Arrange
+      const votingUser = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))
+      const votingUserOldPoints = votingUser.points
+      const writingUser = (await createUser({ username: 'Jack the ripper', password: 'oeu*&%*%&^843$#' }))
+      const createdWritings = await createWritings(1, writingUser._id)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject = {
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 4,
+        conversational: true,
+        positive: false,
+        personal: true,
+        writingId: writingId
+      }
+
+      // Act
+      await repository.addVoteToWriting(voteObject, votingUser)
+
+      // Assert
+      const updatedUser = await repository.retrieveUserById(votingUser._id)
+      expect(updatedUser.points).toEqual(votingUserOldPoints + 1)
     })
 
     it('throws an exception when an attribute has a value above the limit', async () => {
