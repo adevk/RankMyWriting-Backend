@@ -21,26 +21,22 @@ export default class Repository {
    * @returns {object} The user object.
    */
   async createUser (userData) {
-    // Confirm that username is not taken.
-    if (!await User.findOne({ username: userData.username })) {
-      try {
-        // Create a user model.
-        const user = new User({
-          username: userData.username,
-          password: userData.password
-        })
-        // Save user to the database.
-        return (await user.save()).toObject()
-      } catch (error) {
-        if (error.name === 'ValidationError') {
-          throw createError(400, error.message)
-        } else {
-          throw createError(500)
-        }
+    try {
+      // Create a user model.
+      const user = new User({
+        username: userData.username,
+        password: userData.password
+      })
+      // Save user to the database.
+      return (await user.save()).toObject()
+    } catch (error) {
+      if (error.name === 'ValidationError') {
+        throw createError(400, error)
       }
-    } else {
-      // 400 Bad request (user already exists).
-      throw createError(400)
+      if (error.code === 11000) {
+        throw createError(409, error)
+      }
+      throw createError(500, error)
     }
   }
 
@@ -57,7 +53,7 @@ export default class Repository {
       const jwtSignInToken = dbUser.generateSignedJwtToken()
       return jwtSignInToken
     } catch (error) {
-      throw createError(401, error.message)
+      throw createError(401, error)
     }
   }
 
@@ -96,7 +92,7 @@ export default class Repository {
       return (await writing.save()).toObject()
     } catch (error) {
       if (error.name === 'ValidationError') {
-        throw createError(400, error.message)
+        throw createError(400, error)
       } else {
         throw createError(500)
       }
@@ -134,7 +130,7 @@ export default class Repository {
       return (await vote.save()).toObject()
     } catch (error) {
       if (error.name === 'ValidationError') {
-        throw createError(400, error.message)
+        throw createError(400, error)
       } else {
         throw createError(500)
       }
