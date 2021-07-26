@@ -11,6 +11,7 @@ import { router } from './routes/router.js'
 import { connectDB } from './config/mongoose.js'
 import cors from 'cors'
 import helmet from 'helmet'
+import handleErrors from './middleware/error-handler.js'
 
 export const app = express()
 
@@ -65,35 +66,7 @@ const main = async () => {
   app.use('/', router)
 
   // Error handler.
-  app.use(function (err, req, res, next) {
-    // 404 Not Found.
-    if (err.status === 404) {
-      return res.status(404).send({ message: (err.message || '404 Not Found.') })
-    }
-
-    // 403 Forbidden.
-    if (err.status === 403) {
-      // Return a 404, hiding the fact that the resource exists.
-      return res.status(404).send({ message: (err.message || '404 Not Found.') })
-    }
-
-    // 400 Bad request (ex: unallowed registration input)
-    if (err.status === 400) {
-      return res.status(400).send({ message: (err.message || '400 Bad Request.') })
-    }
-
-    // 401 Unauthorized (ex: not authenticated)
-    if (err.status === 401) {
-      return res.status(401).send({ message: (err.message || '401 Unauthorized.') })
-    }
-
-    // 500 Internal Server Error (in production, all other errors send this response).
-    if (req.app.get('env') !== 'development') {
-      return res.status(500).send(err)
-    } else {
-      return res.status(500).send(err.stack)
-    }
-  })
+  app.use(handleErrors)
 }
 
 main()

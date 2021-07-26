@@ -8,36 +8,36 @@
 import mongoose from 'mongoose'
 
 // Create a schema for a vote.
-export const voteSchema = new mongoose.Schema({
+const voteSchema = new mongoose.Schema({
   comprehensible: {
     type: Number,
-    required: true,
+    required: [true, 'A comprehensible score is required.'],
     min: 0,
     max: 5
   },
   engaging: {
     type: Number,
-    required: true,
+    required: [true, 'A engaging score is required.'],
     min: 0,
     max: 5
   },
   convincing: {
     type: Number,
-    required: true,
+    required: [true, 'A convincing score is required.'],
     min: 0,
     max: 5
   },
   conversational: {
     type: Boolean,
-    required: true
+    required: [true, 'You must choose a FORMAL/CONVERSATIONAL tone.']
   },
   positive: {
     type: Boolean,
-    required: true
+    required: [true, 'You must choose a NEGATIVE/POSITIVE tone.']
   },
   personal: {
     type: Boolean,
-    required: true
+    required: [true, 'You must choose a IMPERSONAL/PERSONAL tone.']
   },
   writingId: {
     type: String,

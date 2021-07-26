@@ -13,14 +13,14 @@ import jwt from 'jsonwebtoken'
 const schema = new mongoose.Schema({
   username: {
     type: String,
-    required: true,
-    unique: true,
+    required: [true, 'A username is required.'],
+    unique: [true, 'The username is already taken.'],
     trim: true,
     maxlength: [100, 'The username is not allowed to consist of more than 100 characters.']
   },
   password: {
     type: String,
-    required: true,
+    required: [true, 'A password is required.'],
     minlength: [8, 'The password must consist of at least 8 characters.']
   }
 }, {

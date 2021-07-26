@@ -1,15 +1,13 @@
-import { describe, it, expect, beforeEach, afterEach, beforeAll, afterAll } from '@jest/globals'
+import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals'
 import supertest from 'supertest'
-import mongoose from 'mongoose'
 import { app } from '../src/server.js'
 import Repository from '../src/models/repository'
 import User from '../src/models/user.js'
 import Writing from '../src/models/writing.js'
 import jwt from 'jsonwebtoken'
 import { createUser, signInUser } from './helper-modules/user-helper'
-import { assertThatWritingExistsInDatabase, createWritings } from './helper-modules/writing-helper'
+import { createWritings } from './helper-modules/writing-helper'
 import dbHandler from './helper-modules/in-memory-mongodb-handler.cjs'
-import repository from '../src/models/repository'
 
 const request = supertest(app)
 
@@ -37,7 +35,7 @@ describe('Router', () => {
 
     it('registers a new user in database', async () => {
       const username = 'Danny'
-      const password = '11111111'
+      const password = '11111111$#%#$%'
 
       // Send request to create user.
       await request.post(registrationPath)
@@ -49,11 +47,11 @@ describe('Router', () => {
       expect(dbUser._id).toBeTruthy()
 
       // Send request to create duplicate user (should fail).
-      const otherPassword = '22222222'
+      const otherPassword = '22222222$#%#'
       await request.post('/users/register')
         .send({ username: username, password: otherPassword })
         .expect('Content-Type', /json/)
-        .expect(400)
+        .expect(409)
 
       const userCount = await User.count()
       expect(userCount).toBe(1)
@@ -67,7 +65,7 @@ describe('Router', () => {
       await request.post(registrationPath)
         .send({ username: username, password: password })
         .expect('Content-Type', /json/)
-        .expect(400, { message: 'User validation failed: password: The password must consist of at least 8 characters.' })
+        .expect(400)
 
       expect(await User.count()).toBe(0)
     })
@@ -251,7 +249,7 @@ describe('Router', () => {
         })
         .set('Authorization', `Bearer ${token}`)
         .expect('Content-Type', /json/)
-        .expect(400, { message: 'Writing validation failed: text: Path `text` is required.' })
+        .expect(400)
 
       const dbWriting = await Writing.findOne({ userId })
       expect(dbWriting).toBeFalsy()
