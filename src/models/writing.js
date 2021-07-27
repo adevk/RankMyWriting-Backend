@@ -22,9 +22,33 @@ const schema = new mongoose.Schema({
     type: String,
     required: [true, 'A text for the writing is required.']
   },
-  active: {
-    type: Boolean,
-    required: true
+  votes: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  score: {
+    comprehensible: {
+      type: Number,
+      required: [true, 'A comprehensible score is required.'],
+      min: 0,
+      max: 5,
+      default: 0
+    },
+    engaging: {
+      type: Number,
+      required: [true, 'A engaging score is required.'],
+      min: 0,
+      max: 5,
+      default: 0
+    },
+    convincing: {
+      type: Number,
+      required: [true, 'A convincing score is required.'],
+      min: 0,
+      max: 5,
+      default: 0
+    }
   }
 }, {
   timestamps: true,

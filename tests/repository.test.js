@@ -183,7 +183,6 @@ describe('Repository', () => {
         userId: user._id,
         title: 'Some test title',
         text: 'Some text for testing...',
-        active: true
       }
 
       // Act
@@ -198,8 +197,7 @@ describe('Repository', () => {
       const writingData = {
         userId: '',
         title: 'Some test title',
-        text: 'Some text for testing...',
-        active: true
+        text: 'Some text for testing...'
       }
 
       // Act + Assert
@@ -240,25 +238,6 @@ describe('Repository', () => {
         title: 'Some test title',
         text: '',
         active: false
-      }
-
-      // Act + Assert
-      await expect(repository.createWriting(writingData)).rejects.toThrow()
-    })
-
-    it('throws exception when active is omitted', async () => {
-      // Arrange
-      const userCredentials = {
-        username: 'Obi-Wan Kenobi',
-        password: '(^&cgoeuzJEDI(*EUO)'
-      }
-
-      const user = await repository.createUser(userCredentials)
-
-      const writingData = {
-        userId: user._id,
-        title: 'Some test title',
-        text: 'Some text for testing...'
       }
 
       // Act + Assert
@@ -311,21 +290,141 @@ describe('Repository', () => {
       const createdWritings = await createWritings(1, writingUser._id)
       const writingId = createdWritings[0]._id.toString()
 
-      const voteObject = {
+      const voteObject1 = {
         comprehensible: 3,
         engaging: 2,
         convincing: 4,
-        conversational: true,
-        positive: false,
-        personal: true,
         writingId: writingId
       }
 
       // Act
-      const addedVote = await repository.addVoteToWriting(voteObject, votingUser)
+      const writing = await repository.addVoteToWriting(voteObject1, votingUser)
 
       // Assert
-      expect(addedVote.writingId).toEqual(writingId)
+      expect(writing.score).toEqual(expect.objectContaining({
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 4
+      }))
+    })
+
+    it('adds the average score of the votes of a writing when casting the second vote', async () => {
+      // Arrange
+      const votingUser1 = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))
+      const votingUser2 = (await createUser({ username: 'Benjamin Fraknlin', password: 'oeu987dhou9843$#' }))
+      const writingUser = (await createUser({ username: 'Jack the ripper', password: 'oeu*&%*%&^843$#' }))
+      const createdWritings = await createWritings(1, writingUser._id)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject1 = {
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 4,
+        writingId: writingId
+      }
+
+      const voteObject2 = {
+        comprehensible: 5,
+        engaging: 2,
+        convincing: 0,
+        writingId: writingId
+      }
+
+      // Act
+      await repository.addVoteToWriting(voteObject1, votingUser1)
+      const updatedWriting = await repository.addVoteToWriting(voteObject2, votingUser2)
+      const roundedScore = {
+        comprehensible: Math.round(updatedWriting.score.comprehensible),
+        engaging: Math.round(updatedWriting.score.engaging),
+        convincing: Math.round(updatedWriting.score.convincing)
+      }
+
+      // Assert
+      expect(roundedScore).toEqual({
+        comprehensible: 4,
+        engaging: 2,
+        convincing: 2
+      })
+    })
+
+    it('adds the average score of the votes of a writing when casting the seventh vote', async () => {
+      // Arrange
+      const votingUser = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))
+      const votingUser2 = (await createUser({ username: 'Benjamin Franklin', password: 'oeu987dhou9843$#' }))
+      const votingUser3 = (await createUser({ username: 'Bill Clinton', password: '*()&(*)&(*&*(*)(&(*&#' }))
+      const writingUser = (await createUser({ username: 'Jack the ripper', password: 'oeu*&%*%&^843$#' }))
+      const createdWritings = await createWritings(1, writingUser._id)
+      const writingId = createdWritings[0]._id.toString()
+
+      const voteObject1 = {
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 4,
+        writingId: writingId
+      }
+
+      const voteObject2 = {
+        comprehensible: 5,
+        engaging: 2,
+        convincing: 0,
+        writingId: writingId
+      }
+
+      const voteObject3 = {
+        comprehensible: 3,
+        engaging: 1,
+        convincing: 0,
+        writingId: writingId
+      }
+
+      const voteObject4 = {
+        comprehensible: 5,
+        engaging: 2,
+        convincing: 5,
+        writingId: writingId
+      }
+
+      const voteObject5 = {
+        comprehensible: 2,
+        engaging: 2,
+        convincing: 4,
+        writingId: writingId
+      }
+
+      const voteObject6 = {
+        comprehensible: 1,
+        engaging: 1,
+        convincing: 0,
+        writingId: writingId
+      }
+
+      const voteObject7 = {
+        comprehensible: 4,
+        engaging: 3,
+        convincing: 5,
+        writingId: writingId
+      }
+
+      // Act
+      await repository.addVoteToWriting(voteObject1, votingUser)
+      await repository.addVoteToWriting(voteObject2, votingUser2)
+      await repository.addVoteToWriting(voteObject3, votingUser3)
+      await repository.addVoteToWriting(voteObject4, votingUser)
+      await repository.addVoteToWriting(voteObject5, votingUser3)
+      await repository.addVoteToWriting(voteObject6, votingUser)
+      const updatedWriting = await repository.addVoteToWriting(voteObject7, votingUser)
+      const roundedScore = {
+        comprehensible: Math.round(updatedWriting.score.comprehensible),
+        engaging: Math.round(updatedWriting.score.engaging),
+        convincing: Math.round(updatedWriting.score.convincing)
+      }
+
+      // Assert
+      expect(roundedScore).toEqual({
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 3
+      })
     })
 
     it("increments a user's points when he receives a vote on his writing", async () => {
@@ -352,6 +451,33 @@ describe('Repository', () => {
       // Assert
       const updatedUser = await repository.retrieveUserById(votingUser._id)
       expect(updatedUser.points).toEqual(votingUserOldPoints + 1)
+    })
+
+    it('Increment the votes field of the writing that was voted on', async () => {
+      // Arrange
+      const votingUser = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))
+      const writingUser = (await createUser({ username: 'Jack the ripper', password: 'oeu*&%*%&^843$#' }))
+      const createdWritings = await createWritings(1, writingUser._id)
+      const writing = createdWritings[0]
+      const writingId = writing._id.toString()
+      const writingOldVotes = writing.votes
+
+      const voteObject = {
+        comprehensible: 3,
+        engaging: 2,
+        convincing: 4,
+        conversational: true,
+        positive: false,
+        personal: true,
+        writingId: writingId
+      }
+
+      // Act
+      await repository.addVoteToWriting(voteObject, votingUser)
+
+      // Assert
+      const updatedWriting = await repository.retrieveWritingById(writingId)
+      expect(updatedWriting.votes).toEqual(writingOldVotes + 1)
     })
 
     it('throws an exception when an attribute has a value above the limit', async () => {
