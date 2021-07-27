@@ -29,8 +29,7 @@ export const createWritings = async (numberOfWritings, userId) => {
     const writing = await repository.createWriting({
       userId: userId,
       title: `Writing ${i}`,
-      text: `This is writing ${i}`,
-      active: false
+      text: `This is writing ${i}`
     })
     writings.push(writing)
   }
@@ -47,5 +46,4 @@ export const assertThatWritingExistsInDatabase = async (writingData) => {
   expect(dbWriting.userId).toBeTruthy()
   expect(dbWriting.title).toEqual(writingData.title)
   expect(dbWriting.text).toEqual(writingData.text)
-  expect(dbWriting.active).toEqual(writingData.active)
 }

@@ -7,7 +7,6 @@
 
 import User from './user.js'
 import Writing from './writing.js'
-import Vote from './vote.js'
 import createError from 'http-errors'
 
 /**
@@ -84,9 +83,7 @@ export default class Repository {
       const writing = new Writing({
         userId: writingData.userId,
         title: writingData.title,
-        text: writingData.text,
-        active: writingData.active
-
+        text: writingData.text
       })
       // Save user to the database.
       return await writing.save()
@@ -127,13 +124,31 @@ export default class Repository {
    */
   async addVoteToWriting (voteObj, votingUser) {
     try {
-      // Save vote to database.
-      const vote = new Vote(voteObj)
-      const addedVote = (await vote.save()).toObject()
-      // Retrieve associated user and increment his/her points.
-      votingUser.points += 1
-      await votingUser.save()
-      return addedVote
+      const writing = await this.retrieveWritingById(voteObj.writingId)
+      // If it's the first vote, just save the vote as the score.
+      if (writing.votes === 0) {
+        writing.set({
+          score: {
+            comprehensible: voteObj.comprehensible,
+            engaging: voteObj.engaging,
+            convincing: voteObj.convincing
+          }
+        })
+      } else {
+        // If it's not the first vote, calculate and save the average of all previous votes.
+        writing.set({
+          score: {
+            comprehensible: this._calculateAverageScore(writing.score.comprehensible, writing.votes, voteObj.comprehensible),
+            engaging: this._calculateAverageScore(writing.score.engaging, writing.votes, voteObj.engaging),
+            convincing: this._calculateAverageScore(writing.score.convincing, writing.votes, voteObj.convincing)
+          }
+        })
+      }
+      writing.votes += 1
+      await writing.save()
+      // Increment the voting user's points.
+      await User.findByIdAndUpdate({ _id: votingUser._id }, { points: votingUser.points + 1 })
+      return writing
     } catch (error) {
       if (error.name === 'ValidationError') {
         throw createError(400, error)
@@ -154,6 +169,7 @@ export default class Repository {
     try {
       // Gets all writings of other users.
       const filteredWritings = await Writing.find({ userId: { $ne: userId } })
+      // Extracts a random writing from the other users' writings.
       const randomWriting = filteredWritings[Math.floor(Math.random() * filteredWritings.length)]
       return randomWriting
     } catch (error) {
@@ -176,6 +192,19 @@ export default class Repository {
       throw createError(500)
     }
   }
+
+  /**
+   * A helper function for calculating the average score of all previous values of a field
+   *
+   * @param {number} previousValue - The previous average score before adding the next value.
+   * @param {number} previousVotes - The total previous votes on the writing before adding the next one.
+   * @param {number} newValue - The new value to be added to the previous average score when calculating a new one.
+   *
+   * @returns {number} The new calculated average score.
+   */
+  _calculateAverageScore (previousValue, previousVotes, newValue) {
+    const factor = previousVotes
+    const divisor = factor + 1
+    return ((previousValue * factor + newValue) / divisor)
+  }
 }
-
-
