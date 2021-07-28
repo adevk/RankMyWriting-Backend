@@ -7,6 +7,8 @@ import {
   createUser, decodeSignInToken, signInUser
 } from './helper-modules/user-helper'
 import { assertThatWritingExistsInDatabase, createWritings } from './helper-modules/writing-helper'
+import User from '../src/models/user'
+import Writing from '../src/models/writing'
 
 const repository = new Repository()
 process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
@@ -182,7 +184,7 @@ describe('Repository', () => {
       const writingData = {
         userId: user._id,
         title: 'Some test title',
-        text: 'Some text for testing...',
+        text: 'Some text for testing...'
       }
 
       // Act
@@ -558,6 +560,33 @@ describe('Repository', () => {
 
       // Assert
       expect(randomWriting.userId).not.toEqual(user1Id)
+    })
+  })
+
+  describe('deleteAccount method', () => {
+    it('deletes the user account', async () => {
+      // Arrange
+      const user = (await createUser({ username: 'Del Ete', password: ')(*&*()EUO' }))
+      const userId = user._id.toString()
+
+      // Act
+      await repository.deleteAccount(userId)
+
+      // Assert
+      expect(await User.findOne({ _id: userId })).toBeFalsy()
+    })
+
+    it("deletes all the user's writings", async () => {
+      // Arrange
+      const user = (await createUser({ username: 'Del Ete', password: ')(*&*()EUO' }))
+      const userId = user._id.toString()
+      await createWritings(23, userId)
+
+      // Act
+      await repository.deleteAccount(userId)
+
+      // Assert
+      expect(await Writing.find({ userId: userId })).toHaveLength(0)
     })
   })
 })

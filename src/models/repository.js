@@ -194,6 +194,21 @@ export default class Repository {
   }
 
   /**
+   * Deletes a user account.
+   *
+   * @param {string} userId - The id of the user account to be deleted.
+   *
+   */
+  async deleteAccount (userId) {
+    try {
+      await User.deleteOne({ _id: userId })
+      await Writing.deleteMany({ userId: userId })
+    } catch (error) {
+      throw createError(500)
+    }
+  }
+
+  /**
    * A helper function for calculating the average score of all previous values of a field
    *
    * @param {number} previousValue - The previous average score before adding the next value.

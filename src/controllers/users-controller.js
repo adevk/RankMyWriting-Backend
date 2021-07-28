@@ -53,4 +53,22 @@ export default class UsersController {
       next(error)
     }
   }
+
+  /**
+   * Deletes a user's account.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  async deleteUser (req, res, next) {
+    const user = req.authorizedUser
+    const userId = user._id.toString()
+    try {
+      await this.repository.deleteAccount(userId)
+      res.status(200).json({ success: true, message: 'Account deleted successfully' })
+    } catch (error) {
+      next(error)
+    }
+  }
 }

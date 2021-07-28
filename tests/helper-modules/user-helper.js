@@ -68,8 +68,6 @@ export const assertThatUserDoesNotExistsInDatabase = async (userCredentials) => 
   expect(await User.findOne({ username: userCredentials.username })).toBeFalsy()
 }
 
-
-
 /**
  * A function for asserting that sign in succeeded and valid token was returned during testing.
  *
