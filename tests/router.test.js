@@ -381,4 +381,30 @@ describe('Router', () => {
         })
     })
   })
+
+  describe("Endpoint for deleting a user's account", () => {
+    it("deletes a user's account and all his writings", async () => {
+      // Arrange
+      const userCredentials = { username: 'Del Ete', password: '897thddeout' }
+      const user = (await createUser(userCredentials))
+      const userId = user._id.toString()
+      const jwtSignInToken = await signInUser(userCredentials)
+
+      await createWritings(7, userId)
+
+      // Act + Assert
+      await request.delete('/users/delete')
+        .send()
+        .set('Authorization', `Bearer ${jwtSignInToken}`)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .then(response => {
+          const successStatus = response.body.success
+          expect(successStatus).toEqual(true)
+        })
+
+      expect(await User.findOne({ _id: userId })).toBeFalsy()
+      expect(await Writing.find({ userId: userId })).toHaveLength(0)
+    })
+  })
 })
