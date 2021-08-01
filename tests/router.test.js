@@ -353,7 +353,7 @@ describe('Router', () => {
   })
 
   describe('Endpoint for fetching a random writing for voting', () => {
-    it('fetches a random writing from another user', async () => {
+    it('fetches a random writing from among non-voting users who have accumulated points', async () => {
       // Arrange
       const user1Credentials = { username: 'user1', password: '897thddeout' }
       const user1 = (await createUser(user1Credentials))
@@ -361,7 +361,9 @@ describe('Router', () => {
       const jwtSignInToken = await signInUser(user1Credentials)
 
       const user2 = (await createUser({ username: 'user2', password: '(*)&U98eo789)' }))
+      await User.findByIdAndUpdate({ _id: user2._id }, { points: 2 })
       const user3 = (await createUser({ username: 'user3', password: 'SHHTHSeou' }))
+      await User.findByIdAndUpdate({ _id: user3._id }, { points: 1 })
       const user4 = (await createUser({ username: 'user4', password: '*&^(UEX*&' }))
 
       await createWritings(8, user1Id)
@@ -378,6 +380,37 @@ describe('Router', () => {
         .then(response => {
           const randomWriting = response.body.data
           expect(randomWriting.userId).not.toEqual(user1Id)
+        })
+    })
+
+    it('does not fetch a writing when none of the non-voting users has any points', async () => {
+      // Arrange
+      const votingUserCredentials = { username: 'user1', password: '897thddeout' }
+      const votingUser = (await createUser(votingUserCredentials))
+      const votingUserId = votingUser._id.toString()
+      const jwtSignInToken = await signInUser(votingUserCredentials)
+
+      const user2 = (await createUser({ username: 'user2', password: '(*)&U98eo789)' }))
+      await User.findByIdAndUpdate({ _id: user2._id }, { points: 0 })
+      const user3 = (await createUser({ username: 'user3', password: 'SHHTHSeou' }))
+      await User.findByIdAndUpdate({ _id: user3._id }, { points: 0 })
+      const user4 = (await createUser({ username: 'user4', password: '*&^(UEX*&' }))
+      await User.findByIdAndUpdate({ _id: user4._id }, { points: 0 })
+
+      await createWritings(8, votingUserId)
+      await createWritings(2, user2._id)
+      await createWritings(3, user3._id)
+      await createWritings(4, user4._id)
+
+      // Act + Assert
+      await request.get('/writings/random')
+        .send()
+        .set('Authorization', `Bearer ${jwtSignInToken}`)
+        .expect('Content-Type', /json/)
+        .expect(200)
+        .then(response => {
+          const randomWriting = response.body.data
+          expect(randomWriting).toBeFalsy()
         })
     })
   })

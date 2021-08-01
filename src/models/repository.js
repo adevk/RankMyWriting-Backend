@@ -125,30 +125,36 @@ export default class Repository {
   async addVoteToWriting (voteObj, votingUser) {
     try {
       const writing = await this.retrieveWritingById(voteObj.writingId)
-      // If it's the first vote, just save the vote as the score.
-      if (writing.votes === 0) {
-        writing.set({
-          score: {
-            comprehensible: voteObj.comprehensible,
-            engaging: voteObj.engaging,
-            convincing: voteObj.convincing
-          }
-        })
-      } else {
-        // If it's not the first vote, calculate and save the average of all previous votes.
-        writing.set({
-          score: {
-            comprehensible: this._calculateAverageScore(writing.score.comprehensible, writing.votes, voteObj.comprehensible),
-            engaging: this._calculateAverageScore(writing.score.engaging, writing.votes, voteObj.engaging),
-            convincing: this._calculateAverageScore(writing.score.convincing, writing.votes, voteObj.convincing)
-          }
-        })
+      const writingOwner = await this.retrieveUserById(writing.userId)
+      // If the writing owner has any points to his account, execute the code to add the vote.
+      if (writingOwner.points > 0) {
+        // If it's the first vote, just save the vote as the score.
+        if (writing.votes === 0) {
+          writing.set({
+            score: {
+              comprehensible: voteObj.comprehensible,
+              engaging: voteObj.engaging,
+              convincing: voteObj.convincing
+            }
+          })
+        } else {
+          // If it's not the first vote, calculate and save the average of all previous votes.
+          writing.set({
+            score: {
+              comprehensible: this._calculateAverageScore(writing.score.comprehensible, writing.votes, voteObj.comprehensible),
+              engaging: this._calculateAverageScore(writing.score.engaging, writing.votes, voteObj.engaging),
+              convincing: this._calculateAverageScore(writing.score.convincing, writing.votes, voteObj.convincing)
+            }
+          })
+        }
+        writing.votes += 1
+        await writing.save()
+        // Decrement the writing owner's points, as he has received a vote.
+        await User.findByIdAndUpdate(writing.userId, { $inc: { points: -1 } })
+        // Increment the voting user's points, as he has casted a vote.
+        await User.findByIdAndUpdate({ _id: votingUser._id }, { points: votingUser.points + 1 })
+        return writing
       }
-      writing.votes += 1
-      await writing.save()
-      // Increment the voting user's points.
-      await User.findByIdAndUpdate({ _id: votingUser._id }, { points: votingUser.points + 1 })
-      return writing
     } catch (error) {
       if (error.name === 'ValidationError') {
         throw createError(400, error)
@@ -161,15 +167,20 @@ export default class Repository {
   /**
    * Retrieves a random writing for voting on.
    *
-   * @param {string} userId - The user id of the user whose writings shall be retrieved.
+   * @param {string} votingUserId - The user id of the user whose writings shall be retrieved.
    *
    * @returns {object} The retrieved writing.
    */
-  async retrieveRandomWritingForVoting (userId) {
+  async retrieveRandomWritingForVoting (votingUserId) {
     try {
-      // Gets all writings of other users.
-      const filteredWritings = await Writing.find({ userId: { $ne: userId } })
-      // Extracts a random writing from the other users' writings.
+      // Get all users, except the voting user, who have some points accumulated.
+      const filteredUsers = await User.find({ _id: { $ne: votingUserId }, points: { $gt: 0 } })
+      // Get a random user among the filtered users.
+      const randomUser = filteredUsers[Math.floor(Math.random() * filteredUsers.length)]
+      if (!randomUser) return
+      // Get all writings of the random user.
+      const filteredWritings = await Writing.find({ userId: randomUser._id })
+      // Extract a random writing from among the random user's writings.
       const randomWriting = filteredWritings[Math.floor(Math.random() * filteredWritings.length)]
       return randomWriting
     } catch (error) {
