@@ -7,14 +7,12 @@
 
 import Repository from '../models/repository.js'
 
-// TODO Add location to responses after creation
-
 /**
  * Encapsulates a controller.
  */
 export default class WritingsController {
   /**
-   *  Initializes controller.
+   * Initializes a WritingsController.
    */
   constructor () {
     this.repository = new Repository()
@@ -60,22 +58,21 @@ export default class WritingsController {
   }
 
   /**
-   * Creates all writings from repository.
+   * Retrieves all writings from repository.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express response object.
    * @param {Function} next - Express next middleware function.
    */
   async retrieveWritings (req, res, next) {
-    const user = req.authorizedUser
-    const userId = user._id.toString()
+    const authorizedUser = req.authorizedUser
+    const userId = authorizedUser._id.toString()
     try {
       const retrievedWritings = await this.repository.retrieveWritings(userId)
       if (retrievedWritings.length === 0) {
-        // TODO change status code to more correct one
-        res.status(200).send({ writings: retrievedWritings, points: user.points, message: 'There are no writings for this user.' })
+        res.status(200).send({ writings: retrievedWritings, points: authorizedUser.points, message: 'There are no writings for this user.' })
       } else {
-        res.status(200).send({ writings: retrievedWritings, points: user.points, message: 'Writings retrieved successfully.' })
+        res.status(200).send({ writings: retrievedWritings, points: authorizedUser.points, message: 'Writings retrieved successfully.' })
       }
     } catch (error) {
       next(error)
@@ -83,7 +80,7 @@ export default class WritingsController {
   }
 
   /**
-   * Retrieves a random writing from repository.
+   * Retrieves a random writing for voting on from repository.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express response object.

@@ -248,7 +248,7 @@ describe('Repository', () => {
   })
 
   describe('retrieveWritings method', () => {
-    it('retrieves all writings', async () => {
+    it("retrieves all of a user's writings", async () => {
       // Arrange
       const userId = (await createUser({ username: 'Magnus Uggla', password: 'oeu987dhou9843' }))._id
       const createdWritings = await createWritings(3, userId)
@@ -432,7 +432,7 @@ describe('Repository', () => {
       })
     })
 
-    it("increments a user's points when he receives a vote on his writing", async () => {
+    it("increments a user's points when he votes on a writing", async () => {
       // Arrange
       const votingUser = (await createUser({ username: 'Nikola Tesla', password: 'oeu987dhou9843$#' }))
       const votingUserOldPoints = votingUser.points

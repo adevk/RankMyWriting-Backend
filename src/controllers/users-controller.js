@@ -8,11 +8,11 @@
 import Repository from '../models/repository.js'
 
 /**
- * Encapsulates a controller.
+ * Encapsulates a UsersController.
  */
 export default class UsersController {
   /**
-   *  Initializes controller
+   * Initializes a UsersController.
    */
   constructor () {
     this.repository = new Repository()
@@ -55,7 +55,7 @@ export default class UsersController {
   }
 
   /**
-   * Deletes a user's account.
+   * Deletes a user's account and all his data.
    *
    * @param {object} req - Express request object.
    * @param {object} res - Express response object.

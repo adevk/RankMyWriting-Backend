@@ -6,7 +6,7 @@
  */
 
 /**
- * Encapsulates a controller.
+ * Encapsulates a HomeController.
  */
 export default class HomeController {
   /**

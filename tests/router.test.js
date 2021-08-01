@@ -32,7 +32,6 @@ describe('Router', () => {
   })
 
   describe('Registration endpoint', () => {
-
     it('registers a new user in database', async () => {
       const username = 'Danny'
       const password = '11111111$#%#$%'
@@ -95,7 +94,6 @@ describe('Router', () => {
   })
 
   describe('Login endpoint', () => {
-
     it('logs in user with valid data', async () => {
       // For JWT generation.
       process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
@@ -160,7 +158,6 @@ describe('Router', () => {
   })
 
   describe('Writing-creation endpoint', () => {
-
     it('creates a writing in database', async () => {
       // For JWT generation.
       process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
@@ -256,8 +253,8 @@ describe('Router', () => {
     })
   })
 
-  describe('Endpoint for fetching all writings', () => {
-    it('fetches all a user\'s writings when user is signed in', async () => {
+  describe("Endpoint for fetching all of a user's writings", () => {
+    it('fetches all of a user\'s writings when user is signed in', async () => {
       // Arrange
       const userCredentials = {
         username: 'Petter',

@@ -11,7 +11,7 @@ import { router } from './routes/router.js'
 import { connectDB } from './config/mongoose.js'
 import cors from 'cors'
 import helmet from 'helmet'
-import handleErrors from './middleware/error-handler.js'
+import errorHandler from './middleware/error-handler.js'
 
 export const app = express()
 
@@ -52,12 +52,6 @@ const main = async () => {
 
   app.use(cors())
 
-  /* app.use(function (req, res, next) {
-    res.header('Access-Control-Allow-Origin', '*'); // update to match the domain you will make the request from
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-    next()
-  }) */
-
   if (app.get('env') === 'production') {
     app.set('trust proxy', 1) // trust first proxy
   }
@@ -66,7 +60,7 @@ const main = async () => {
   app.use('/', router)
 
   // Error handler.
-  app.use(handleErrors)
+  app.use(errorHandler)
 }
 
 main()
