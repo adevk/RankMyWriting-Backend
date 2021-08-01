@@ -96,8 +96,6 @@ export default class Repository {
     }
   }
 
-  // TODO Rename id property for writing returned to client
-
   /**
    * Retrieves all writings for a particular user.
    *
@@ -220,7 +218,7 @@ export default class Repository {
   }
 
   /**
-   * A helper function for calculating the average score of all previous values of a field
+   * A helper function for calculating the average score of all previous values of a field.
    *
    * @param {number} previousValue - The previous average score before adding the next value.
    * @param {number} previousVotes - The total previous votes on the writing before adding the next one.

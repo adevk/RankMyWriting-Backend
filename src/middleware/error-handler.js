@@ -6,7 +6,7 @@
  * @param {object} res - Express response object.
  * @param {Function} next - Express next middleware function.
  */
-const handleErrors = function (err, req, res, next) {
+const errorHandler = function (err, req, res, next) {
   // 404 Not Found.
   if (err.status === 404) {
     res.status(404).send({ message: (err.message || '404 Not Found.') })
@@ -56,4 +56,4 @@ const _extractValidationErrorMessage = (err) => {
   return errorMessage
 }
 
-export default handleErrors
+export default errorHandler

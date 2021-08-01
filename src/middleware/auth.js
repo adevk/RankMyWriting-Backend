@@ -2,7 +2,6 @@ import jwt from 'jsonwebtoken'
 import Repository from '../models/repository.js'
 import createError from 'http-errors'
 
-// eslint-disable-next-line jsdoc/require-returns
 /**
  * Middleware for protecting routes by authorization.
  *
@@ -29,7 +28,7 @@ const authorize = async (req, res, next) => {
     next()
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
-      return next(createError(401, 'User is not authenticated.'))
+      next(createError(401, 'User is not authenticated.'))
     } else {
       next(error)
     }
