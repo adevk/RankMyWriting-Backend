@@ -93,7 +93,8 @@ export default class WritingsController {
     const userId = req.authorizedUser._id.toString()
     try {
       const randomWriting = await this.repository.retrieveRandomWritingForVoting(userId)
-      res.status(200).send({ data: randomWriting, message: 'Retrieved a random writing for voting.' })
+      const message = randomWriting ? 'Retrieved a random writing for voting.' : 'There are no writings to vote on'
+      res.status(200).send({ data: randomWriting, message: message })
     } catch (error) {
       next(error)
     }
