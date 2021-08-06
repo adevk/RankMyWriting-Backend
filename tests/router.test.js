@@ -104,7 +104,7 @@ describe('Router', () => {
 
       // Initiate db with a user to login with.
       const repository = new Repository()
-      const user = await repository.createUser({ username, password })
+      await repository.createUser({ username, password })
 
       const response = await request.post(loginPath)
         .send({ username: username, password: password })

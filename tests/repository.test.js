@@ -9,6 +9,7 @@ import {
 import { assertThatWritingExistsInDatabase, createWritings } from './helper-modules/writing-helper'
 import User from '../src/models/user'
 import Writing from '../src/models/writing'
+import bcrypt from 'bcryptjs'
 
 const repository = new Repository()
 process.env.JWT_SECRET = '3f1ee83429c5b7567912c03a2ddb456102c8fa38e770028d17e0db57284db92cfeafeff2c2a820de1edad318ccfdb523'
@@ -107,6 +108,21 @@ describe('Repository', () => {
 
       // Assert
       assertThatUserDoesNotExistsInDatabase(userCredentials)
+    })
+
+    it("stores user's password in hashed format", async () => {
+      // Arrange
+      const userCredentials = {
+        username: 'Jack',
+        password: '90824&*(^*&(*'
+      }
+
+      // Act
+      await createUser(userCredentials)
+
+      // Assert
+      const dbUser = await User.findOne({ username: userCredentials.username })
+      expect(await bcrypt.compare(userCredentials.password, dbUser.password)).toBeTruthy()
     })
   })
 
