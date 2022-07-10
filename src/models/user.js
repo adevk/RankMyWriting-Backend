@@ -25,7 +25,7 @@ const schema = new mongoose.Schema({
   },
   points: {
     type: Number,
-    default: 3,
+    default: 0,
     min: 0
   }
 }, {
